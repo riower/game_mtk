@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Matematika - Permainan</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(45deg, #3498db, #5e5e5e);
+            color: #fff;
+        }
+        #game-container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        #question {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #answer {
+            font-size: 18px;
+            padding: 10px;
+            width: 100px;
+            margin-bottom: 20px;
+        }
+        #submit {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2ecc71;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        #submit:hover {
+            background-color: #27ae60;
+        }
+        #timer, #score {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        #result {
+            font-size: 20px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #next-level {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            transition: background-color 0.3s;
+            display: none;
+            margin-top: 20px;
+        }
+        #next-level:hover {
+            background-color: #2980b9;
+        }
+        marquee {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+        "Matematika adalah bahasa alam semesta." - Galileo Galilei | "Matematika adalah puisi logika." - Albert Einstein | "Matematika adalah musik akal." - James Joseph Sylvester | "Matematika adalah pintu dan kunci ilmu pengetahuan." - Roger Bacon | "Matematika adalah ratu ilmu pengetahuan." - Carl Friedrich Gauss | "Matematika adalah seni berpikir." - Isaac Newton | "Matematika adalah gimnastik otak." - Alexander Suvorov | "Matematika adalah keindahan yang terlihat." - Aristoteles | "Matematika adalah ilmu tentang pola." - Lynn Arthur Steen | "Matematika adalah permainan yang dimainkan menurut aturan sederhana dengan tanda-tanda di atas kertas." - David Hilbert
+    </marquee>
+
+    <div id="game-container">
+        <h1>Game Matematika - Level <span id="current-level">1</span></h1>
+        <div id="timer">Waktu: <span id="time">60</span> detik</div>
+        <div id="score">Skor: <span id="current-score">0</span></div>
+        <div id="question"></div>
+        <input type="number" id="answer" placeholder="Jawaban">
+        <button id="submit">Jawab</button> 
+        <div id="result"></div>
+        <button id="next-level">Level Berikutnya</button>
+    </div>
+
+    <footer style="position: fixed; bottom: 0; width: 100%; text-align: center; padding: 10px; background-color: rgba(0,0,0,0.5);">
+        Game by Paul HGMR
+    </footer>
+
+    <script>
+        let currentLevel = 1;
+        let currentQuestion = 1;
+        let score = 0;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let timeLeft = 60;
+        let timer;
+
+        const questionElement = document.getElementById('question');
+        const answerElement = document.getElementById('answer');
+        const submitButton = document.getElementById('submit');
+        const resultElement = document.getElementById('result');
+        const scoreElement = document.getElementById('current-score');
+        const timeElement = document.getElementById('time');
+        const nextLevelButton = document.getElementById('next-level');
+        const currentLevelElement = document.getElementById('current-level');
+
+        function generateQuestion() {
+            let num1, num2, operator;
+            switch (currentLevel) {
+                case 1:
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    operator = '+';
+                    break;
+                case 2:
+                    num1 = Math.floor(Math.random() * 20) + 1;
+                    num2 = Math.floor(Math.random() * 20) + 1;
+                    operator = Math.random() < 0.5 ? '+' : '-';
+                    break;
+                case 3:
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    operator = '*';
+                    break;
+                default:
+                    num1 = Math.floor(Math.random() * 50) + 1;
+                    num2 = Math.floor(Math.random() * 50) + 1;
+                    operator = ['+', '-', '*'][Math.floor(Math.random() * 3)];
+            }
+            questionElement.textContent = `${num1} ${operator} ${num2} = ?`;
+            return { num1, num2, operator };
+        }
+
+        function checkAnswer(num1, num2, operator, userAnswer) {
+            let correctAnswer;
+            switch (operator) {
+                case '+':
+                    correctAnswer = num1 + num2;
+                    break;
+                case '-':
+                    correctAnswer = num1 - num2;
+                    break;
+                case '*':
+                    correctAnswer = num1 * num2;
+                    break;
+            }
+            return parseInt(userAnswer) === correctAnswer;
+        }
+
+        function updateScore(isCorrect) {
+            if (isCorrect) {
+                score += 10;
+                correctAnswers++;
+            } else {
+                wrongAnswers++;
+            }
+            scoreElement.textContent = score;
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                timeElement.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            submitButton.disabled = true;
+            answerElement.disabled = true;
+            resultElement.innerHTML = `
+                Permainan Selesai!<br>
+                Jawaban Benar: ${correctAnswers}<br>
+                Jawaban Salah: ${wrongAnswers}<br>
+                Skor Akhir: ${score}
+            `;
+            nextLevelButton.style.display = 'inline-block';
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            currentLevelElement.textContent = currentLevel;
+            currentQuestion = 1;
+            score = 0;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            timeLeft = 60;
+            scoreElement.textContent = score;
+            timeElement.textContent = timeLeft;
+            resultElement.textContent = '';
+            submitButton.disabled = false;
+            answerElement.disabled = false;
+            nextLevelButton.style.display = 'none';
+            startGame();
+        }
+
+        function startGame() {
+            const question = generateQuestion();
+            startTimer();
+
+            submitButton.onclick = () => {
+                const userAnswer = answerElement.value;
+                if (userAnswer !== '') {
+                    const isCorrect = checkAnswer(question.num1, question.num2, question.operator, userAnswer);
+                    updateScore(isCorrect);
+                    answerElement.value = '';
+                    
+                    if (currentQuestion < 10) {
+                        currentQuestion++;
+                        const newQuestion = generateQuestion();
+                        question.num1 = newQuestion.num1;
+                        question.num2 = newQuestion.num2;
+                        question.operator = newQuestion.operator;
+                    } else {
+                        endGame();
+                    }
+                }
+            };
+        }
+
+        nextLevelButton.onclick = nextLevel;
+        startGame();
+    </script>
+</body>
+</html>
